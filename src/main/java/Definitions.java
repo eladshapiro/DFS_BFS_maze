@@ -9,4 +9,5 @@ public class Definitions {
     public static final int ALGORITHM_DFS = 1;
     public static final int ALGORITHM_BFS = 2;
 
+
 }

@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Stack;
 
 public class Maze extends JFrame {
 
@@ -10,6 +11,8 @@ public class Maze extends JFrame {
     private boolean[][] visited;
     private int startRow;
     private int startColumn;
+    private int goalRow;
+    private int goalColumn;
     private ArrayList<JButton> buttonList;
     private int rows;
     private int columns;
@@ -39,6 +42,8 @@ public class Maze extends JFrame {
         this.buttonList = new ArrayList<>();
         this.rows = values.length;
         this.columns = values.length;
+        this.goalColumn=values.length-1;
+        this.goalRow=values.length-1;
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        this.setLocationRelativeTo(null);
@@ -63,13 +68,16 @@ public class Maze extends JFrame {
     public void checkWayOut() {
         new Thread(() -> {
             boolean result = false;
+            makeMatrixNode();
             switch (this.algorithm) {
                 case Definitions.ALGORITHM_DFS:
+                    Node startNode = new Node(startRow, startColumn,Definitions.EMPTY,makeMatrixNode());
+                    result = DFS(startNode);
                     break;
                 case Definitions.ALGORITHM_BFS:
                     break;
             }
-            JOptionPane.showMessageDialog(null,  result ? "FOUND SOLUTION" : "NO SOLUTION FOR THIS MAZE");
+            JOptionPane.showMessageDialog(null, result ? "FOUND SOLUTION" : "NO SOLUTION FOR THIS MAZE");
 
         }).start();
     }
@@ -110,5 +118,42 @@ public class Maze extends JFrame {
         }
     }
 
+    public boolean DFS(Node StartNode)
+    {
+        int nodesCount=0;
+        Stack<Node> stack = new Stack<>();
+        stack.add(StartNode);
+        while (!stack.empty()) {
+            Node currentNode = stack.pop();
+            if (!currentNode.isVisited())
+            {
+                nodesCount++;
+                currentNode.setVisited(true);
+                System.out.println("("+currentNode.getRow()+","+currentNode.getColumn()+")");
+                setSquareAsVisited(currentNode.getRow(),currentNode.getColumn(),true);
+                if (currentNode.getRow()==rows-1 && currentNode.getColumn()==columns-1)
+                {
+                    System.out.println("the number of nodes that you passed is: "+nodesCount);
+                return true;
+                }
+                for (Node neighbor : currentNode.getNeighbors())
+                {
+                    if (!neighbor.isVisited())
+                        stack.add(neighbor);
+                }
+            }
+        }
+        return false;
+    }
 
+    public Node[][] makeMatrixNode()
+    {
+       Node[][] nodeMatrix=new Node[rows][columns];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+               nodeMatrix[i][j]=new Node(i,j,values[i][j],nodeMatrix);
+            }
+        }
+        return nodeMatrix;
+    }
 }
